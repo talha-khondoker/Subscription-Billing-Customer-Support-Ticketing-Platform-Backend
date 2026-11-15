@@ -1,8 +1,3 @@
-# SubFlow Backend - Skeleton (no code)
-
-Every file the Tier 1 backend needs, created empty with a header that says:
-who owns it, what it is for, and a TODO list of what must be written inside.
-
 Stack: FastAPI, SQLAlchemy 2, MySQL (SQLite for local work), JWT auth, APScheduler.
 
 ## How to use

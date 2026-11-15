@@ -285,7 +285,7 @@ Make sure you have the following installed:
 
 ``` bash
 git clone <YOUR_REPOSITORY_URL>
-cd subflow-backend
+cd Subscription-Billing-Customer-Support-Ticketing-Platform-Backend
 ```
 
 Replace `<YOUR_REPOSITORY_URL>` with the Git repository URL.

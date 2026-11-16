@@ -14,3 +14,26 @@
 #   -       message
 #   -       type
 #   -       is_read
+
+
+from sqlalchemy import Boolean, ForeignKey, Index, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.database import Base
+from app.core.enums import NotificationType
+from app.models.base import IdMixin, TimestampMixin, enum_col, org_fk
+
+
+class Notification(Base, IdMixin, TimestampMixin):
+    __tablename__ = "notifications"
+    __table_args__ = (Index("ix_notifications_user_read", "user_id", "is_read"),)
+
+    organization_id: Mapped[int] = org_fk()
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    type: Mapped[NotificationType] = enum_col(NotificationType, default=NotificationType.INFO, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    user: Mapped["User"] = relationship()
+

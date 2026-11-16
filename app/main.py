@@ -11,3 +11,6 @@
 #   - on startup: start the scheduler when settings.SCHEDULER_ENABLED is true
 #   - on shutdown: stop the scheduler
 #   - add a GET /health endpoint
+
+
+print("Hello World")

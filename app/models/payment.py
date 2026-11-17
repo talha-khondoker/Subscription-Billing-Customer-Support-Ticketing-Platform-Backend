@@ -32,7 +32,6 @@
 #   -       status
 
 
-
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
@@ -45,6 +44,9 @@ from app.core.enums import AttemptStatus, PaymentStatus, RefundStatus
 from app.models.base import IdMixin, TimestampMixin, enum_col, money, org_fk
 from app.utils.dates import utcnow
 
+from user import User
+from invoice import Invoice
+from customer import Customer
 
 class Payment(Base, IdMixin, TimestampMixin):
     __tablename__ = "payments"

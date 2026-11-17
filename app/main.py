@@ -12,5 +12,3 @@
 #   - on shutdown: stop the scheduler
 #   - add a GET /health endpoint
 
-
-print("hello")

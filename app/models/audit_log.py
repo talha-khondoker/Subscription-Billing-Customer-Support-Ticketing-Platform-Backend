@@ -15,3 +15,28 @@
 #   -       entity_id
 #   -       old_values (JSON)
 #   -       new_values (JSON)
+
+from typing import Optional
+
+from sqlalchemy import JSON, ForeignKey, Index, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.database import Base
+from app.models.base import IdMixin, TimestampMixin, org_fk
+
+
+class AuditLog(Base, IdMixin, TimestampMixin):
+    __tablename__ = "audit_logs"
+    __table_args__ = (Index("ix_audit_org_entity", "organization_id", "entity_type", "entity_id"),)
+
+    # NULL for platform-level actions by the Super Admin.
+    organization_id: Mapped[Optional[int]] = org_fk(nullable=True)
+    # NULL when the system itself did it (scheduled jobs).
+    actor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)  # e.g. "subscription.change_plan"
+    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g. "subscription"
+    entity_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    old_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    new_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+    actor: Mapped[Optional["User"]] = relationship()

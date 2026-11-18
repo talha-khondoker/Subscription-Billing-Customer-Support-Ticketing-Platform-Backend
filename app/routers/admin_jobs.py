@@ -9,3 +9,5 @@
 #   - POST /admin/jobs/run-renewals [OA]  manual trigger (demo)
 #   - POST /admin/jobs/run-retries [OA]  manual trigger (demo)
 #   - POST /admin/jobs/run-sla-check [OA]  manual trigger (demo)
+
+# These routes manually start background jobs and return a simple response.

@@ -13,3 +13,5 @@
 #   - POST /payments/{id}/refund [OA]
 #   - GET  /refunds [OA]
 #   - PUT  /gateway/mock-config [OA]  set mock result mode
+
+# Routes validate requests and roles, then call Member 4 service functions.

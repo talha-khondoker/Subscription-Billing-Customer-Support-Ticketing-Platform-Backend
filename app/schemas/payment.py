@@ -22,6 +22,7 @@ from app.core.enums import AttemptStatus, PaymentStatus, RefundStatus
 
 
 class PayInvoiceRequest(BaseModel):
+    # The customer sends the invoice ID when starting payment.
     invoice_id: int = Field(gt=0)
 
 class PaymentAttemptOut(BaseModel):
@@ -56,6 +57,7 @@ class PaymentOut(BaseModel):
 
 
 class RefundCreate(BaseModel):
+    # Refund amount must be positive; reason is optional.
     """Data required to create a refund."""
 
     amount: Decimal = Field(gt=0)
@@ -80,6 +82,7 @@ class RefundOut(BaseModel):
 
 
 class MockGatewayConfig(BaseModel):
+    # Controls whether the mock gateway succeeds, fails, or chooses randomly.
     """Configuration for mock payment gateway"""
 
     mode: Literal["always_success", "always_fail", "random"]

@@ -49,6 +49,7 @@ from invoice import Invoice
 from customer import Customer
 
 class Payment(Base, IdMixin, TimestampMixin):
+    """One payment record for an invoice."""
     __tablename__ = "payments"
 
     organization_id: Mapped[int] = org_fk()
@@ -68,6 +69,7 @@ class Payment(Base, IdMixin, TimestampMixin):
 
 
 class PaymentAttempt(Base, IdMixin):
+    """One gateway attempt made for a payment."""
     __tablename__ = "payment_attempts"
 
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"), index=True, nullable=False)
@@ -83,6 +85,7 @@ class PaymentAttempt(Base, IdMixin):
 
 
 class Refund(Base, IdMixin, TimestampMixin):
+    """A completed or pending refund for a payment."""
     __tablename__ = "refunds"
 
     organization_id: Mapped[int] = org_fk()

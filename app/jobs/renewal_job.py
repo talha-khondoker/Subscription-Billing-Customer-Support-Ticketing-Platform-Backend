@@ -7,3 +7,5 @@
 #   - find active subscriptions with next_billing_date <= now
 #   - call subscription_service.renew and payment_service.attempt_payment
 #   - also callable from POST /admin/jobs/run-renewals
+
+# Run one renewal cycle when the scheduler or admin endpoint calls this job.

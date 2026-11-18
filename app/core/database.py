@@ -9,6 +9,7 @@
 #   - declarative Base class
 #   - get_db() generator dependency: open session, yield, always close
 
+
 """Database engine, session factory and the declarative Base used by every model."""
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool

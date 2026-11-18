@@ -10,11 +10,11 @@ from app.schemas.organization import OrganizationCreate, OrganizationOut, Organi
 from app.schemas.common import Page
 from app.services import organization_service
 
-router = APIRouter(prefix="/organizations", tags=["organizations"])
+router = APIRouter(tags=["organizations"])
 super_admin = require_roles(Role.SUPER_ADMIN)
 
 
-@router.post("", response_model=OrganizationOut, status_code=201)
+@router.post("/organizations", response_model=OrganizationOut, status_code=201)
 def create(data: OrganizationCreate, db: Session = Depends(get_db), actor: User = Depends(super_admin)):
     try:
         result = organization_service.create_organization_with_admin(db, data)
@@ -26,13 +26,13 @@ def create(data: OrganizationCreate, db: Session = Depends(get_db), actor: User 
         raise
 
 
-@router.get("", response_model=Page[OrganizationOut])
+@router.get("/organizations", response_model=Page[OrganizationOut])
 def list_all(page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),
              db: Session = Depends(get_db), actor: User = Depends(super_admin)):
     return organization_service.list_organizations(db, page, page_size)
 
 
-@router.patch("/{organization_id}", response_model=OrganizationOut)
+@router.patch("/organizations/{organization_id}", response_model=OrganizationOut)
 def update(organization_id: int, data: OrganizationUpdate, db: Session = Depends(get_db),
            actor: User = Depends(super_admin)):
     try:

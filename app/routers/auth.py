@@ -9,10 +9,10 @@ from app.core.deps import get_current_user
 from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut
 from app.services import auth_service
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 
-@router.post("/register", response_model=UserOut, status_code=201)
+@router.post("/auth/register", response_model=UserOut, status_code=201)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
     try:
         user = auth_service.register_customer(db, data)
@@ -25,7 +25,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/login",
+    "/auth/login",
     response_model=TokenResponse,
     openapi_extra={"requestBody": {"required": True, "content": {
         "application/json": {"schema": {"type": "object", "properties": {
@@ -60,7 +60,7 @@ async def login(request: Request, db: Session = Depends(get_db)):
     return auth_service.build_token_response(auth_service.authenticate(db, data.email, data.password))
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/auth/me", response_model=UserOut)
 def me(user=Depends(get_current_user)):
     return user
 # app/routers/auth.py

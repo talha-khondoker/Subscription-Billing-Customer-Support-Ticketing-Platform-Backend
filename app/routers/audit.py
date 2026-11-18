@@ -9,10 +9,10 @@ from app.services.audit_service import list_logs
 from app.schemas.audit import AuditLogOut
 from app.schemas.common import Page
 
-router = APIRouter(prefix="/audit-logs", tags=["audit"])
+router = APIRouter(tags=["audit"])
 
 
-@router.get("", response_model=Page[AuditLogOut])
+@router.get("/audit-logs", response_model=Page[AuditLogOut])
 def get_logs(entity: str | None = None, actor: int | None = None,
              date_from: datetime | None = None, date_to: datetime | None = None,
              page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100),

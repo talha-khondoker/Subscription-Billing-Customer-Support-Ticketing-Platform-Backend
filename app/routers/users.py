@@ -7,10 +7,10 @@ from app.models.user import User
 from app.schemas.user import AgentCreate, UserOut, UserUpdate
 from app.services import user_service
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
-@router.post("/agents", response_model=UserOut, status_code=201)
+@router.post("/users/agents", response_model=UserOut, status_code=201)
 def create_agent(data: AgentCreate, db: Session = Depends(get_db), actor: User = Depends(current_org_admin)):
     try:
         result = user_service.create_agent(db, actor.organization_id, data)
@@ -22,12 +22,12 @@ def create_agent(data: AgentCreate, db: Session = Depends(get_db), actor: User =
         raise
 
 
-@router.get("/agents", response_model=list[UserOut])
+@router.get("/users/agents", response_model=list[UserOut])
 def list_agents(db: Session = Depends(get_db), actor: User = Depends(current_org_admin)):
     return user_service.list_agents(db, actor.organization_id)
 
 
-@router.patch("/{user_id}", response_model=UserOut)
+@router.patch("/users/{user_id}", response_model=UserOut)
 def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db),
                 actor: User = Depends(current_org_admin)):
     try:

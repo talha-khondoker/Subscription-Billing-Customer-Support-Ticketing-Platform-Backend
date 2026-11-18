@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # app/main.py
-# Owner: Shared (Member 1 owns; ask before changing)
+# Owner:   Shared (Member 1 owns; ask before changing)
 # Purpose: FastAPI application entry point.
 # ----------------------------------------------------------------------
 # TODO:
@@ -13,6 +13,24 @@
 #   - add a GET /health endpoint
 
 
+"""SubFlow API entry point.
+
+Run locally from the project root:
+    uvicorn app.main:app --reload
+Interactive API docs:
+    http://localhost:8000/docs
+
+Conventions
+-----------
+* Every router file exposes a module-level ``router = APIRouter(tags=[...])`` and writes
+  the FULL path after the prefix (for example ``@router.get("/plans")`` or
+  ``@router.post("/invoices/{invoice_id}/pay")``). This file adds the ``/api/v1`` prefix.
+* To add a new router: create ``app/routers/<name>.py`` and add ``"<name>"`` to ROUTER_MODULES.
+* A router file that does not define ``router`` yet (an empty placeholder) is skipped with a
+  warning, so the app keeps starting while the team is still writing code.
+"""
+import importlib
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -156,18 +174,6 @@ def root():
 def health():
     """Liveness check, used by Render and by the frontend team."""
     return {"status": "ok"}
-
-
-@app.get("/health/db", tags=["health"])
-def health_db():
-    """Readiness check: confirms the database connection works."""
-    try:
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Database health check failed")
-        return {"status": "error", "database": "unreachable", "detail": str(exc)}
-    return {"status": "ok", "database": "reachable"}
 
 
 @app.get("/health/db", tags=["health"])

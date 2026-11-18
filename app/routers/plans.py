@@ -17,7 +17,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from app.models.plan import get_db
+from app.core.database import get_db
 
 
 from app.schemas.plan import (PlanCreate,PlanUpdate,PlanOut)

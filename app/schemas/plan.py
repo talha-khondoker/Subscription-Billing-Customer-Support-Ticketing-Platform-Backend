@@ -12,7 +12,7 @@
 from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
-from core import BillingPeriod
+from app.core.enums import BillingPeriod
 
 
 # Create Plan

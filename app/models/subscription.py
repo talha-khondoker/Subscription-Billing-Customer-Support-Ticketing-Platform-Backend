@@ -54,3 +54,4 @@ class Subscription(Base, IdMixin, TimestampMixin):
     customer: Mapped["Customer"] = relationship(back_populates="subscriptions")
     plan: Mapped["Plan"] = relationship(back_populates="subscriptions")
     invoices: Mapped[List["Invoice"]] = relationship(back_populates="subscription")
+

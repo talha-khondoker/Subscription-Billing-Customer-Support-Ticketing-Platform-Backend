@@ -40,3 +40,4 @@ class AuditLog(Base, IdMixin, TimestampMixin):
     new_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     actor: Mapped[Optional["User"]] = relationship()
+

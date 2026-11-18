@@ -17,6 +17,7 @@
 #   -       is_active
 
 
+
 from typing import List, Optional
 
 from sqlalchemy import Boolean, ForeignKey, String

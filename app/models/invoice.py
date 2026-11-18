@@ -85,3 +85,4 @@ class InvoiceItem(Base, IdMixin):
     amount: Mapped[Decimal] = money()  # may be negative (discount, proration credit)
 
     invoice: Mapped["Invoice"] = relationship(back_populates="items")
+

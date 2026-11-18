@@ -36,3 +36,4 @@ class Notification(Base, IdMixin, TimestampMixin):
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user: Mapped["User"] = relationship()
+

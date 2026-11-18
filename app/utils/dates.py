@@ -28,3 +28,17 @@ def add_months(dt: datetime, months: int) -> datetime:
     day = min(dt.day, calendar.monthrange(year, month)[1])
     return dt.replace(year=year, month=month, day=day)
 
+
+def days_between(a: datetime, b: datetime) -> int:
+    """Whole calendar days between two dates, independent of time-of-day."""
+    return (b.date() - a.date()).days
+
+
+def add_period(dt: datetime, billing_period) -> datetime:
+    value = getattr(billing_period, "value", billing_period)
+    if value == "monthly":
+        return add_months(dt, 1)
+    if value == "yearly":
+        return add_months(dt, 12)
+    raise ValueError(f"Unsupported billing period: {value}")
+

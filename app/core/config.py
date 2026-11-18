@@ -23,12 +23,12 @@ except ImportError:
 class Settings:
     ENV: str = os.getenv("ENV", "development")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./subflow.db")
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "347b2dc119ab5c530c15eb1594140ac03280b6108abf0fa6f9acfac224943755")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
-    RETRY_SCHEDULE_DAYS: list[int] = [int(d) for d in os.getenv("RETRY_SCHEDULE_DAYS", "1,3,5").split(",")]
+    RETRY_SCHEDULE_DAYS: list[int] = [int(d.strip()) for d in os.getenv("RETRY_SCHEDULE_DAYS", "1,3,5").split(",") if d.strip()]
     MAX_RETRY_ATTEMPTS: int = int(os.getenv("MAX_RETRY_ATTEMPTS", "3"))
-    SCHEDULER_ENABLED: bool = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
-    CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    SCHEDULER_ENABLED: bool = os.getenv("SCHEDULER_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+    CORS_ORIGINS: list[str] = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
     DEFAULT_TAX_PERCENT: float = float(os.getenv("DEFAULT_TAX_PERCENT", "0"))
 
 

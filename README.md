@@ -31,6 +31,7 @@ notifications, audit logging, and operational dashboards.
 -   [Business Rules](#business-rules)
 -   [Testing](#testing)
 -   [Team Responsibilities](#team-responsibilities)
+-   [Bangla Team Handoff Manual](TEAM_HANDOFF_BN.md)
 -   [Development Conventions](#development-conventions)
 
 ------------------------------------------------------------------------

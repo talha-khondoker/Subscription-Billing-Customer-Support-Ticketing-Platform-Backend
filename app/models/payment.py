@@ -32,7 +32,6 @@
 #   -       status
 
 
-
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
@@ -45,8 +44,12 @@ from app.core.enums import AttemptStatus, PaymentStatus, RefundStatus
 from app.models.base import IdMixin, TimestampMixin, enum_col, money, org_fk
 from app.utils.dates import utcnow
 
+from app.models.user import User
+from app.models.customer import Customer
+from app.models.invoice import Invoice
 
 class Payment(Base, IdMixin, TimestampMixin):
+    """One payment record for an invoice."""
     __tablename__ = "payments"
 
     organization_id: Mapped[int] = org_fk()
@@ -66,6 +69,7 @@ class Payment(Base, IdMixin, TimestampMixin):
 
 
 class PaymentAttempt(Base, IdMixin):
+    """One gateway attempt made for a payment."""
     __tablename__ = "payment_attempts"
 
     payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"), index=True, nullable=False)
@@ -81,6 +85,7 @@ class PaymentAttempt(Base, IdMixin):
 
 
 class Refund(Base, IdMixin, TimestampMixin):
+    """A completed or pending refund for a payment."""
     __tablename__ = "refunds"
 
     organization_id: Mapped[int] = org_fk()

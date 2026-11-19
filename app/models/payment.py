@@ -44,9 +44,9 @@ from app.core.enums import AttemptStatus, PaymentStatus, RefundStatus
 from app.models.base import IdMixin, TimestampMixin, enum_col, money, org_fk
 from app.utils.dates import utcnow
 
-from user import User
-from invoice import Invoice
-from customer import Customer
+from app.models.user import User
+from app.models.customer import Customer
+from app.models.invoice import Invoice
 
 class Payment(Base, IdMixin, TimestampMixin):
     """One payment record for an invoice."""

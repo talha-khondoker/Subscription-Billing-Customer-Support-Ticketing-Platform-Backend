@@ -186,4 +186,3 @@ def health_db():
         logger.exception("Database health check failed")
         return {"status": "error", "database": "unreachable", "detail": str(exc)}
     return {"status": "ok", "database": "reachable"}
-

@@ -9,21 +9,27 @@
 #   - CancelRequest (at_period_end)
 #   - SubscriptionOut
 
+# ----------------------------------------------------------------------
+# app/schemas/subscription.py
+# Owner: Member 2
+# Purpose: Pydantic request/response schemas
+# ----------------------------------------------------------------------
 
-
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
 
+from pydantic import BaseModel, Field, ConfigDict
 
-# 1. Subscription Create Schema
+from app.core.enums import SubscriptionStatus
+
+
+# 1. Create Subscription Schema
 class SubscriptionCreate(BaseModel):
-    plan_id: int
+    plan_id: int = Field(..., gt=0)
 
 
 # 2. Change Plan Request Schema
 class ChangePlanRequest(BaseModel):
-    new_plan_id: int
+    new_plan_id: int = Field(..., gt=0)
 
 
 # 3. Cancel Subscription Schema
@@ -35,11 +41,18 @@ class CancelRequest(BaseModel):
 class SubscriptionOut(BaseModel):
     id: int
     organization_id: int
+    customer_id: int
     plan_id: int
-    status: str
+    status: SubscriptionStatus
+
     start_date: datetime
     current_period_start: datetime
     current_period_end: datetime
-    cancel_at_period_end: bool
+
+    next_billing_date: datetime | None = None
+    paused_at: datetime | None = None
+    cancelled_at: datetime | None = None
+
+    cancel_at_period_end: bool = False
 
     model_config = ConfigDict(from_attributes=True)

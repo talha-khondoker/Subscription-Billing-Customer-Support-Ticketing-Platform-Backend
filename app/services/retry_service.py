@@ -11,8 +11,8 @@
 from datetime import timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
 from app.core.enums import (
@@ -51,19 +51,36 @@ def schedule_next_retry(
     return attempt
 
 
-def run_due_retries(db: Session) -> list[Payment]:
+def run_due_retries(db: Session, organization_id: int | None = None) -> list[Payment]:
     """Retry failed payments whose retry date has arrived."""
 
-    payments = db.scalars(
-        select(Payment).where(Payment.status == PaymentStatus.FAILED)
-    ).unique().all()
+    latest_attempt_number = (
+        select(func.max(PaymentAttempt.attempt_number))
+        .where(PaymentAttempt.payment_id == Payment.id)
+        .correlate(Payment)
+        .scalar_subquery()
+    )
+    now = utcnow()
+    query = (
+        select(Payment)
+        .join(PaymentAttempt, PaymentAttempt.payment_id == Payment.id)
+        .where(
+            Payment.status == PaymentStatus.FAILED,
+            PaymentAttempt.attempt_number == latest_attempt_number,
+            PaymentAttempt.next_retry_at <= now,
+        )
+        .options(selectinload(Payment.attempts), selectinload(Payment.invoice), selectinload(Payment.customer))
+        .order_by(PaymentAttempt.next_retry_at, Payment.id)
+        .with_for_update(skip_locked=True)
+    )
+    if organization_id is not None:
+        query = query.where(Payment.organization_id == organization_id)
+    payments = db.scalars(query).unique().all()
     retried = []
 
     for payment in payments:
         previous = max(payment.attempts, key=lambda item: item.attempt_number, default=None)
         if previous is None or previous.next_retry_at is None:
-            continue
-        if previous.next_retry_at > utcnow():
             continue
         if payment.invoice is None or payment.customer is None:
             raise HTTPException(
@@ -76,7 +93,7 @@ def run_due_retries(db: Session) -> list[Payment]:
             payment_id=payment.id,
             invoice_id=payment.invoice.id,
             attempt_number=previous.attempt_number + 1,
-            status="succeeded" if result["success"] else "failed",
+            status=AttemptStatus.SUCCEEDED if result["success"] else AttemptStatus.FAILED,
             gateway_response=result,
         )
         db.add(attempt)

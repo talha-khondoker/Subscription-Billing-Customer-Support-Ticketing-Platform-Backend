@@ -1,4 +1,38 @@
 # ----------------------------------------------------------------------
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+
+class AppError(Exception):
+    def __init__(self, status_code: int, detail: str, code: str = "APP_ERROR"):
+        self.status_code, self.detail, self.code = status_code, detail, code
+        super().__init__(detail)
+
+
+class NotFound(AppError):
+    def __init__(self, detail="Resource not found"):
+        super().__init__(404, detail, "NOT_FOUND")
+
+
+class Forbidden(AppError):
+    def __init__(self, detail="Forbidden"):
+        super().__init__(403, detail, "FORBIDDEN")
+
+
+class Unauthorized(AppError):
+    def __init__(self, detail="Authentication required"):
+        super().__init__(401, detail, "UNAUTHORIZED")
+
+
+class BusinessRuleError(AppError):
+    def __init__(self, detail, status_code=400, code="BUSINESS_RULE_ERROR"):
+        super().__init__(status_code, detail, code)
+
+
+def register_exception_handlers(app: FastAPI):
+    @app.exception_handler(AppError)
+    async def handle_app_error(request: Request, exc: AppError):
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail, "code": exc.code})
 # app/core/exceptions.py
 # Owner:   Shared (Member 1 owns; ask before changing)
 # Purpose: Custom errors and one consistent error response format.
@@ -7,3 +41,76 @@
 #   - AppError base class (status_code, detail, code)
 #   - NotFound (404), Forbidden (403), Unauthorized (401), BusinessRuleError (400/409)
 #   - register_exception_handlers(app): return {"detail": "...", "code": "..."}
+
+
+"""Custom errors and one consistent error format. Owner: Member 1.
+
+Usage in services:   raise NotFound("Ticket not found")
+Response format:     {"detail": "Ticket not found", "code": "not_found"}
+"""
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+class AppError(Exception):
+    status_code: int = 400
+    code: str = "app_error"
+    default_detail: str = "Application error"
+
+    def __init__(self, detail: str | None = None, code: str | None = None):
+        self.detail = detail or self.default_detail
+        if code:
+            self.code = code
+        super().__init__(self.detail)
+
+
+class Unauthorized(AppError):
+    status_code = 401
+    code = "unauthorized"
+    default_detail = "Not authenticated"
+
+
+class Forbidden(AppError):
+    status_code = 403
+    code = "forbidden"
+    default_detail = "You do not have permission for this action"
+
+
+class NotFound(AppError):
+    status_code = 404
+    code = "not_found"
+    default_detail = "Resource not found"
+
+
+class Conflict(AppError):
+    status_code = 409
+    code = "conflict"
+    default_detail = "Conflict with the current state"
+
+
+class BusinessRuleError(AppError):
+    """A request that is valid but breaks a business rule (e.g. refund above paid amount)."""
+    status_code = 400
+    code = "business_rule_violation"
+    default_detail = "Business rule violated"
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppError)
+    async def app_error_handler(request: Request, exc: AppError):
+        headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail, "code": exc.code},
+            headers=headers,
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail, "code": "http_error"},
+            headers=getattr(exc, "headers", None),
+        )
+    # Validation errors (422) keep FastAPI's default format, which Swagger shows clearly.

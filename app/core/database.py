@@ -9,15 +9,18 @@
 #   - declarative Base class
 #   - get_db() generator dependency: open session, yield, always close
 
+
 """Database engine, session factory and the declarative Base used by every model."""
 from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.core.config import settings
 
 _connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+_engine_options = {"poolclass": StaticPool} if settings.DATABASE_URL in {"sqlite://", "sqlite:///:memory:"} else {}
 
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args)
+engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args, **_engine_options)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 

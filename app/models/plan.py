@@ -42,3 +42,4 @@ class Plan(Base, IdMixin, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     subscriptions: Mapped[List["Subscription"]] = relationship(back_populates="plan")
+

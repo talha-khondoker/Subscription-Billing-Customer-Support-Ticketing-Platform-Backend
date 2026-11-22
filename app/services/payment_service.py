@@ -16,7 +16,8 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.enums import InvoiceStatus, PaymentStatus, Role
+from app.core.config import settings
+from app.core.enums import AttemptStatus, InvoiceStatus, PaymentStatus, Role
 from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.models.payment import Payment, PaymentAttempt
@@ -27,6 +28,8 @@ from app.utils.dates import utcnow
 def attempt_payment(db: Session, invoice: Invoice) -> Payment:
     """Create a payment attempt for an invoice."""
 
+    invoice = db.scalar(select(Invoice).where(Invoice.id == invoice.id).with_for_update()) or invoice
+
     if invoice.customer is None:
         raise HTTPException(status_code=400, detail="Invoice has no customer")
     if invoice.status in (InvoiceStatus.PAID, InvoiceStatus.REFUNDED, InvoiceStatus.VOID):
@@ -36,7 +39,7 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
         )
 
     payment = db.scalar(
-        select(Payment).where(Payment.invoice_id == invoice.id).order_by(Payment.id.desc())
+        select(Payment).where(Payment.invoice_id == invoice.id).with_for_update()
     )
     if payment is None:
         payment = Payment(
@@ -49,6 +52,10 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
         db.add(payment)
         db.flush()
     else:
+        if payment.status == PaymentStatus.SUCCEEDED:
+            raise HTTPException(status_code=409, detail="Payment has already succeeded")
+        if len(payment.attempts) >= settings.MAX_RETRY_ATTEMPTS:
+            raise HTTPException(status_code=409, detail="Maximum payment attempts reached")
         payment.amount = invoice.total
         payment.status = PaymentStatus.PENDING
 
@@ -58,7 +65,7 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
         payment_id=payment.id,
         invoice_id=invoice.id,
         attempt_number=attempt_number,
-        status="succeeded" if result["success"] else "failed",
+        status=AttemptStatus.SUCCEEDED if result["success"] else AttemptStatus.FAILED,
         gateway_response=result,
     )
     db.add(attempt)

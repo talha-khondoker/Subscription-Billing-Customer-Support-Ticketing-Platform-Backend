@@ -15,6 +15,7 @@
 #   -       resolution_minutes
 #   -       is_active
 
+
 from sqlalchemy import Boolean, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 

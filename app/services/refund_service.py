@@ -30,6 +30,10 @@ def create_refund(
     reason: str | None = None,
 ) -> Refund:
     # Validate the refund before changing any payment or invoice.
+    payment = db.scalar(select(Payment).where(Payment.id == payment.id).with_for_update()) or payment
+    if admin.organization_id != payment.organization_id:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    old_status = payment.status
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Refund must be greater than zero")
     if payment.status not in (PaymentStatus.SUCCEEDED, PaymentStatus.REFUNDED):
@@ -72,7 +76,7 @@ def create_refund(
             action="payment.refund",
             entity_type="refund",
             entity_id=refund.id,
-            old_values={"payment_status": PaymentStatus.SUCCEEDED.value},
+            old_values={"payment_status": old_status.value},
             new_values={"amount": str(amount), "reason": reason},
         )
     )

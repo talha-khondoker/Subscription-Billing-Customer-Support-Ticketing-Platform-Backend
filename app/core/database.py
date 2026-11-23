@@ -1,26 +1,37 @@
 # ----------------------------------------------------------------------
 # app/core/database.py
-# Owner:   Shared (Member 1 owns; ask before changing)
+# Owner: Shared (Member 1 owns; ask before changing)
 # Purpose: Database engine, session factory, Base, get_db dependency.
 # ----------------------------------------------------------------------
-# TODO:
-#   - create engine from DATABASE_URL (pool_pre_ping on; SQLite needs check_same_thread=False)
-#   - SessionLocal factory
-#   - declarative Base class
-#   - get_db() generator dependency: open session, yield, always close
-
-
 """Database engine, session factory and the declarative Base used by every model."""
+
 from sqlalchemy import create_engine
-from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import NullPool, StaticPool
 
 from app.core.config import settings
 
-_connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
-_engine_options = {"poolclass": StaticPool} if settings.DATABASE_URL in {"sqlite://", "sqlite:///:memory:"} else {}
+_connect_args = (
+    {"check_same_thread": False}
+    if settings.DATABASE_URL.startswith("sqlite")
+    else {}
+)
 
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args, **_engine_options)
+if settings.DATABASE_URL in {"sqlite://", "sqlite:///:memory:"}:
+    _engine_options = {"poolclass": StaticPool}
+elif ":6543/" in settings.DATABASE_URL:
+    # Supabase transaction pooler (port 6543) handles pooling externally
+    _engine_options = {"poolclass": NullPool}
+else:
+    _engine_options = {}
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args=_connect_args,
+    **_engine_options,
+)
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
@@ -35,4 +46,3 @@ def get_db():
         yield db
     finally:
         db.close()
-

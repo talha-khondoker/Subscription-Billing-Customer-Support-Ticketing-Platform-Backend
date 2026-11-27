@@ -5,10 +5,6 @@
 # ----------------------------------------------------------------------
 # Notes:
 #   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - GET  /notifications [all]  with unread count
-#   - POST /notifications/{id}/read [all]
-#   - POST /notifications/read-all [all]
 
 """Notification endpoints. Owner: Member 6. Paths are full paths; main.py adds /api/v1."""
 from fastapi import APIRouter, Depends, Query
@@ -49,4 +45,3 @@ def read_all(db: Session = Depends(get_db), user: User = Depends(get_current_use
 @router.post("/notifications/{notification_id}/read", response_model=NotificationOut)
 def read_one(notification_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return notification_service.mark_read(db, user, notification_id)
-

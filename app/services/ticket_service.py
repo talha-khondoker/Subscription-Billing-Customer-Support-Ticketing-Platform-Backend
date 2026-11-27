@@ -3,16 +3,6 @@
 # Owner:   Member 5
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - create_ticket(db, customer, data)  -> sla_service + assignment_service
-#   - list_tickets(db, user, filters, page)
-#   - get_ticket(db, user, id)  -> hide internal notes from customers
-#   - update_ticket
-#   - assign_ticket
-#   - add_message  (agent reply sets first_responded_at)
-#   - add_internal_note
-#   - escalate_ticket
-#   - resolve_ticket
 
 
 """Tickets. Owner: Member 5. (Phase 2 + Phase 3 - replaces the Phase 2 file.)
@@ -42,7 +32,7 @@ from app.schemas.ticket import (
 )
 from app.services import assignment_service, notification_service, sla_service
 from app.utils.dates import utcnow
-from app.utils.pagination import paginate
+from app.utils.pagination import paginate_stmt
 
 FINISHED = (TicketStatus.RESOLVED, TicketStatus.CLOSED)
 

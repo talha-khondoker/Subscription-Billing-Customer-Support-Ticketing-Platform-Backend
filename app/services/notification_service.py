@@ -3,11 +3,6 @@
 # Owner:   Member 6
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - notify(db, user_id, title, message, type)
-#   - list_for_user(db, user, page)
-#   - mark_read(db, user, id)
-#   - mark_all_read(db, user)
 
 
 """In-app notifications. Owner: Member 6.
@@ -28,7 +23,7 @@ from app.core.enums import NotificationType, Role
 from app.core.exceptions import NotFound
 from app.models.notification import Notification
 from app.models.user import User
-from app.utils.pagination import paginate
+from app.utils.pagination import paginate_stmt
 
 
 def notify(
@@ -99,7 +94,7 @@ def list_for_user(db: Session, user: User, page: int = 1, page_size: int = 20, u
     if unread_only:
         stmt = stmt.where(Notification.is_read.is_(False))
     stmt = stmt.order_by(Notification.created_at.desc(), Notification.id.desc())
-    result = paginate(db, stmt, page, page_size)
+    result = paginate_stmt(db, stmt, page, page_size)
     result["unread_count"] = unread_count(db, user)
     return result
 

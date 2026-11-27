@@ -1,3 +1,5 @@
+# NOTE: received without a path header; saved as app/utils/pagination.py (matches every
+#       `from app.utils.pagination import ...` in the project).
 """Pagination helpers. Owner: Member 1.
 
 Two styles live here because the team writes queries two ways:

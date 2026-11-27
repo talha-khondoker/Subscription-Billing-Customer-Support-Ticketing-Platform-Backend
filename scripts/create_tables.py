@@ -3,8 +3,6 @@
 # Owner:   Member 1
 # Purpose: Create all tables from the models.
 # ----------------------------------------------------------------------
-# TODO:
-#   - Base.metadata.create_all(engine)
 
 """Create all tables from the models (quick start; switch to Alembic migrations later).
 
@@ -21,4 +19,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

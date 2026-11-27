@@ -3,10 +3,6 @@
 # Owner:   Member 4
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - schedule_next_retry(db, payment)  -> uses RETRY_SCHEDULE_DAYS
-#   - run_due_retries(db)  -> retry payments whose next_retry_at has passed
-#   - after MAX_RETRY_ATTEMPTS failures: subscription past_due + notify admin
 
 from datetime import timedelta
 
@@ -105,6 +101,15 @@ def run_due_retries(db: Session, organization_id: int | None = None) -> list[Pay
             payment.invoice.status = InvoiceStatus.PAID
             payment.invoice.paid_at = utcnow()
             previous.next_retry_at = None
+            if payment.invoice.subscription_id is not None:
+                subscription = db.get(Subscription, payment.invoice.subscription_id)
+                if subscription is not None and subscription.status == SubscriptionStatus.PAST_DUE:
+                    subscription.status = SubscriptionStatus.ACTIVE
+            db.add(Notification(
+                organization_id=payment.organization_id, user_id=payment.customer.user_id,
+                title="Payment received", message=f"Payment for invoice {payment.invoice.invoice_number} succeeded.",
+                type=NotificationType.PAYMENT,
+            ))
         else:
             payment.status = PaymentStatus.FAILED
             payment.failure_reason = result["message"]

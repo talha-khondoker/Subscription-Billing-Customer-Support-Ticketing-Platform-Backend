@@ -5,11 +5,6 @@
 # ----------------------------------------------------------------------
 # Notes:
 #   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - GET   /customers/me [CU]
-#   - PATCH /customers/me [CU]
-#   - GET   /customers [OA, AG]  with search
-#   - GET   /customers/{id} [OA, AG]  profile + histories
 
 """Customer endpoints. Owner: Member 6. Paths are full paths; main.py adds /api/v1.
 
@@ -26,7 +21,7 @@ from app.core.deps import require_roles
 from app.core.enums import Role
 from app.models.user import User
 from app.schemas.common import Page
-from app.schemas.customer import CustomerDetailOut, CustomerOut, CustomerUpdate
+from app.schemas.customer import CustomerAdminUpdate, CustomerDetailOut, CustomerOut, CustomerUpdate
 from app.services import customer_service
 
 router = APIRouter(tags=["customers"])
@@ -65,3 +60,12 @@ def get_customer(
 ):
     return customer_service.get_customer_detail(db, user, customer_id)
 
+
+@router.patch("/customers/{customer_id}", response_model=CustomerOut)
+def update_customer(
+    customer_id: int,
+    data: CustomerAdminUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(Role.ORG_ADMIN)),
+):
+    return customer_service.update_customer_by_admin(db, user, customer_id, data)

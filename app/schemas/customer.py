@@ -3,10 +3,6 @@
 # Owner:   Member 6
 # Purpose: Pydantic request/response schemas (the API contract used by the frontend).
 # ----------------------------------------------------------------------
-# TODO:
-#   - CustomerUpdate
-#   - CustomerOut
-#   - CustomerDetailOut (profile + subscription, invoice, payment, ticket history)
 
 """Customer schemas. Owner: Member 6."""
 from datetime import datetime
@@ -25,6 +21,11 @@ class CustomerUpdate(BaseModel):
     company_name: Optional[str] = Field(default=None, max_length=150)
 
 
+class CustomerAdminUpdate(CustomerUpdate):
+    """What an Org Admin may change on a customer (also allows deactivating the login)."""
+    is_active: Optional[bool] = None
+
+
 class CustomerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -34,6 +35,7 @@ class CustomerOut(BaseModel):
     full_name: str
     phone: Optional[str] = None
     company_name: Optional[str] = None
+    is_active: bool = True
     created_at: datetime
 
     @classmethod
@@ -46,6 +48,7 @@ class CustomerOut(BaseModel):
             full_name=customer.user.full_name,
             phone=customer.phone,
             company_name=customer.company_name,
+            is_active=customer.user.is_active,
             created_at=customer.created_at,
         )
 
@@ -90,4 +93,3 @@ class CustomerDetailOut(CustomerOut):
     invoices: List[InvoiceSummary] = []
     payments: List[PaymentSummary] = []
     tickets: List[TicketSummary] = []
-

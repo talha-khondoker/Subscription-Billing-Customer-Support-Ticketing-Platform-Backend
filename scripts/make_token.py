@@ -1,3 +1,5 @@
+# NOTE: received without a path header; saved as scripts/make_token.py (its docstring says
+#       "python -m scripts.make_token <email>").
 """DEV ONLY: print a JWT for a seeded user so you can test protected routes in Swagger
 before the /auth/login endpoint exists.
 

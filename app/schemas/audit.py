@@ -1,4 +1,8 @@
 # ----------------------------------------------------------------------
+# app/schemas/audit.py
+# Owner:   Member 1
+# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
+# ----------------------------------------------------------------------
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
@@ -8,6 +12,7 @@ class AuditLogOut(BaseModel):
     id: int
     organization_id: int | None
     actor_id: int | None
+    actor_name: str | None = None
     action: str
     entity_type: str
     entity_id: int | None
@@ -21,10 +26,3 @@ class AuditLogFilter(BaseModel):
     actor: int | None = None
     date_from: datetime | None = None
     date_to: datetime | None = None
-# app/schemas/audit.py
-# Owner:   Member 1
-# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
-# ----------------------------------------------------------------------
-# TODO:
-#   - AuditLogOut
-#   - AuditLogFilter

@@ -5,14 +5,6 @@
 # ----------------------------------------------------------------------
 # Notes:
 #   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - POST /invoices/{id}/pay [CU]  pay through the mock gateway
-#   - GET  /payments/me [CU]
-#   - GET  /payments [OA, AG]
-#   - GET  /payments/{id}/attempts [CU, OA, AG]
-#   - POST /payments/{id}/refund [OA]
-#   - GET  /refunds [OA]
-#   - PUT  /gateway/mock-config [OA]  set mock result mode
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select

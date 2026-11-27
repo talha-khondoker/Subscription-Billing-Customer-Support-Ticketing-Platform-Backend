@@ -1,4 +1,8 @@
 # ----------------------------------------------------------------------
+# app/schemas/user.py
+# Owner:   Member 1
+# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
+# ----------------------------------------------------------------------
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from app.core.enums import Role
 
@@ -22,11 +26,3 @@ class UserOut(BaseModel):
     full_name: str
     role: Role
     is_active: bool
-# app/schemas/user.py
-# Owner:   Member 1
-# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
-# ----------------------------------------------------------------------
-# TODO:
-#   - AgentCreate
-#   - UserUpdate
-#   - UserOut

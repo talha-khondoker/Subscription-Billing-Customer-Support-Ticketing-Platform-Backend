@@ -3,11 +3,6 @@
 # Owner:   Member 2
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - create_plan
-#   - update_plan
-#   - list_plans(db, user)
-#   - set_plan_active(db, id, flag)
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -16,12 +11,20 @@ from app.models.plan import Plan
 from app.schemas.plan import PlanCreate, PlanUpdate
 from sqlalchemy.exc import IntegrityError
 
+from app.services import audit_service
+
+def _snapshot(plan):
+    """JSON-safe copy of the plan fields (for the audit log)."""
+    return {"name": plan.name, "price": str(plan.price), "billing_period": getattr(plan.billing_period, "value", str(plan.billing_period)),
+            "tax_percent": str(plan.tax_percent), "is_active": plan.is_active}
+
+
 # ---------------------------------
 # 1. Create Plan
 # ---------------------------------
 
 # 1. Create Plan
-def create_plan(db: Session,plan_data: PlanCreate,organization_id: int):
+def create_plan(db: Session,plan_data: PlanCreate,organization_id: int, actor=None):
 
     existing_plan = db.query(Plan).filter( Plan.organization_id == organization_id, Plan.name == plan_data.name ).first()
 
@@ -32,6 +35,8 @@ def create_plan(db: Session,plan_data: PlanCreate,organization_id: int):
 
     try:
         db.add(new_plan)
+        db.flush()
+        audit_service.log(db, actor, "plan.create", "plan", new_plan.id, None, _snapshot(new_plan))
         db.commit()
         db.refresh(new_plan)
 
@@ -43,7 +48,7 @@ def create_plan(db: Session,plan_data: PlanCreate,organization_id: int):
 
 
 # 2. Update Plan
-def update_plan( db: Session, plan_id: int, organization_id: int, plan_data: PlanUpdate
+def update_plan( db: Session, plan_id: int, organization_id: int, plan_data: PlanUpdate, actor=None
 ):
 
     existing_plan = db.query(Plan).filter( Plan.id == plan_id, Plan.organization_id == organization_id).first()
@@ -60,10 +65,13 @@ def update_plan( db: Session, plan_id: int, organization_id: int, plan_data: Pla
         if duplicate:
             raise HTTPException( status_code=409,detail="Plan name already exists" )
 
+    old_values = _snapshot(existing_plan)
     for key, value in update_data.items():
         setattr(existing_plan, key, value)
 
     try:
+        db.flush()
+        audit_service.log(db, actor, "plan.update", "plan", existing_plan.id, old_values, _snapshot(existing_plan))
         db.commit()
         db.refresh(existing_plan)
 

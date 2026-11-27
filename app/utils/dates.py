@@ -3,11 +3,6 @@
 # Owner:   Shared (Member 1 owns; ask before changing)
 # Purpose: Date helpers (naive UTC).
 # ----------------------------------------------------------------------
-# TODO:
-#   - utcnow()
-#   - add_months(dt, months)  (clamp day, e.g. Jan 31 + 1 month = Feb 28)
-#   - days_between(a, b)
-#   - add_period(dt, billing_period)
 
 
 """Date helpers. All datetimes in the project are naive UTC."""
@@ -41,4 +36,3 @@ def add_period(dt: datetime, billing_period) -> datetime:
     if value == "yearly":
         return add_months(dt, 12)
     raise ValueError(f"Unsupported billing period: {value}")
-

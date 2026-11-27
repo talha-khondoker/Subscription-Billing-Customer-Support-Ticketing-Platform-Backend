@@ -4,80 +4,60 @@
 # Purpose: HTTP layer only: validate input, check role, call a service, return a schema. No business rules.
 # ----------------------------------------------------------------------
 # Notes:
-#   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - POST /subscriptions [CU]  subscribe (creates first invoice + payment)
-#   - GET  /subscriptions/me [CU]
-#   - GET  /subscriptions [OA, AG]  list with filters
-#   - POST /subscriptions/{id}/change-plan [CU]
-#   - POST /subscriptions/{id}/pause [CU]
-#   - POST /subscriptions/{id}/resume [CU]
-#   - POST /subscriptions/{id}/cancel [CU, OA]
+#   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix /api/v1 is added by main.py.
 
-from typing import Annotated
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.deps import current_customer, current_staff, require_roles
+from app.core.enums import Role, SubscriptionStatus
+from app.models.user import User
+from app.schemas.subscription import CancelRequest, ChangePlanRequest, SubscriptionCreate, SubscriptionOut
+from app.services import subscription_service as svc
 
-from app.schemas.subscription import (
-    SubscriptionCreate,
-    ChangePlanRequest,
-    CancelRequest,
-    SubscriptionOut
-)
-from app.services import subscription_service
-router = APIRouter(prefix="/api/v1/subscriptions",tags=["Subscriptions"])
-db_dependency = Annotated[Session,Depends(get_db)]
-@router.post("",response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
-def create_subscription(request: SubscriptionCreate,db: db_dependency):
-    try:
-        subscription = subscription_service.create_subscription(db=db,customer_id=1,plan_id=request.plan_id)
-        return subscription
-    except ValueError as e:
-        raise HTTPException( status_code=400,detail=str(e))
+router = APIRouter(tags=["subscriptions"])
+out = SubscriptionOut.from_subscription
 
-@router.get("/me",response_model=list[SubscriptionOut])
-def get_my_subscription(db: db_dependency):
-    subscriptions = subscription_service.get_my_subscriptions(db=db,  customer_id=1  )
-    return subscriptions
 
-@router.get("",response_model=list[SubscriptionOut])
-def get_subscriptions(db: db_dependency,subscription_status: str | None = None,plan_id: int | None = None):
-    subscriptions = subscription_service.get_subscriptions( db=db,subscription_status=subscription_status,plan_id=plan_id)
+@router.post("/subscriptions", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
+def create_subscription(request: SubscriptionCreate, db: Session = Depends(get_db),
+                        user: User = Depends(current_customer)):
+    return out(svc.create_subscription(db, user, request.plan_id))
 
-    return subscriptions
 
-@router.post( "/{subscription_id}/change-plan", response_model=SubscriptionOut
-)
-def change_plan( subscription_id: int, request: ChangePlanRequest, db: db_dependency):
+@router.get("/subscriptions/me", response_model=List[SubscriptionOut])
+def get_my_subscription(db: Session = Depends(get_db), user: User = Depends(current_customer)):
+    return [out(s) for s in svc.get_my_subscriptions(db, user)]
 
-    try:
-        subscription = subscription_service.change_plan( db=db, subscription_id=subscription_id, new_plan_id=request.new_plan_id)
-        return subscription
-    except ValueError as e:
-        raise HTTPException( status_code=400, detail=str(e))
-@router.post( "/{subscription_id}/pause",response_model=SubscriptionOut)
-def pause_subscription( subscription_id: int,db: db_dependency):
 
-    try:
-        return subscription_service.pause_subscription( db=db,subscription_id=subscription_id)
+@router.get("/subscriptions", response_model=List[SubscriptionOut])
+def get_subscriptions(subscription_status: Optional[SubscriptionStatus] = None, plan_id: Optional[int] = None,
+                      customer_id: Optional[int] = None, db: Session = Depends(get_db),
+                      user: User = Depends(current_staff)):
+    return [out(s) for s in svc.get_subscriptions(db, user, subscription_status, plan_id, customer_id)]
 
-    except ValueError as e:
-        raise HTTPException( status_code=400,detail=str(e))
 
-@router.post("/{subscription_id}/resume",response_model=SubscriptionOut)
-def resume_subscription(subscription_id: int, db: db_dependency):
-    try:
-        return subscription_service.resume_subscription( db=db,subscription_id=subscription_id)
-    except ValueError as e:
-        raise HTTPException(  status_code=400, detail=str(e))
-@router.post( "/{subscription_id}/cancel",response_model=SubscriptionOut)
-def cancel_subscription(subscription_id: int, request: CancelRequest,db: db_dependency):
-    try:
-        return subscription_service.cancel_subscription(
-            db=db, subscription_id=subscription_id,at_period_end=request.at_period_end)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e) )
+@router.post("/subscriptions/{subscription_id}/change-plan", response_model=SubscriptionOut)
+def change_plan(subscription_id: int, request: ChangePlanRequest, db: Session = Depends(get_db),
+                user: User = Depends(current_customer)):
+    return out(svc.change_plan(db, user, subscription_id, request.new_plan_id))
 
+
+@router.post("/subscriptions/{subscription_id}/pause", response_model=SubscriptionOut)
+def pause_subscription(subscription_id: int, db: Session = Depends(get_db), user: User = Depends(current_customer)):
+    return out(svc.pause_subscription(db, user, subscription_id))
+
+
+@router.post("/subscriptions/{subscription_id}/resume", response_model=SubscriptionOut)
+def resume_subscription(subscription_id: int, db: Session = Depends(get_db), user: User = Depends(current_customer)):
+    return out(svc.resume_subscription(db, user, subscription_id))
+
+
+@router.post("/subscriptions/{subscription_id}/cancel", response_model=SubscriptionOut)
+def cancel_subscription(subscription_id: int, request: Optional[CancelRequest] = None, db: Session = Depends(get_db),
+                        user: User = Depends(require_roles(Role.CUSTOMER, Role.ORG_ADMIN))):
+    at_period_end = request.at_period_end if request else True
+    return out(svc.cancel_subscription(db, user, subscription_id, at_period_end))

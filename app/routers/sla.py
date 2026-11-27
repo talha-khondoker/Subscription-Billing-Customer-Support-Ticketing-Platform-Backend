@@ -5,10 +5,6 @@
 # ----------------------------------------------------------------------
 # Notes:
 #   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - POST  /sla-policies [OA]
-#   - GET   /sla-policies [OA]
-#   - PATCH /sla-policies/{id} [OA]
 
 
 """SLA policy endpoints (Org Admin). Owner: Member 5. Paths are full; main.py adds /api/v1."""

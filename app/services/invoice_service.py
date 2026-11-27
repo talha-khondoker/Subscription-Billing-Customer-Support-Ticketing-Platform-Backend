@@ -121,13 +121,7 @@ def generate_for_subscription(db, subscription):
     db.add(invoice)
     db.flush()
 
-    return (
-        invoice.items,
-        invoice.tax_amount,
-        invoice.discount_amount,
-        invoice.total,
-        invoice.invoice_number
-    )
+    return invoice
 
 
 # Build an invoice for a mid-period plan change

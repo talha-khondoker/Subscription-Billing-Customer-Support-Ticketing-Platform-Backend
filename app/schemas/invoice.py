@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 # app/schemas/invoice.py
-# Owner:   Member 3
-# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
+# Owner: Member 3
+# Purpose: Pydantic schemas for invoice request and response validation.
 # ----------------------------------------------------------------------
 # TODO:
 #   - InvoiceItemOut

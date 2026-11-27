@@ -3,10 +3,6 @@
 # Owner:   Member 4
 # Purpose: Renew subscriptions that are due.
 # ----------------------------------------------------------------------
-# TODO:
-#   - find active subscriptions with next_billing_date <= now
-#   - call subscription_service.renew and payment_service.attempt_payment
-#   - also callable from POST /admin/jobs/run-renewals
 
 """Run due renewals in a short lived database session."""
 import logging
@@ -37,13 +33,19 @@ def run_renewals(organization_id: int | None = None) -> dict[str, int]:
         if organization_id is not None:
             query = query.where(Subscription.organization_id == organization_id)
         due = db.scalars(query.order_by(Subscription.next_billing_date, Subscription.id)).all()
-        renewed = 0
+        renewed = failed = 0
         for subscription in due:
-            invoice = renew(db, subscription)
-            if invoice is not None:
-                payment_service.attempt_payment(db, invoice)
-            renewed += 1
-        return {"renewed": renewed}
+            try:
+                invoice = renew(db, subscription)
+                if invoice is not None:
+                    payment_service.attempt_payment(db, invoice)  # commits
+                db.commit()
+                renewed += 1
+            except Exception:
+                db.rollback()
+                failed += 1
+                logger.exception("Renewal of subscription %s failed", subscription.id)
+        return {"renewed": renewed, "failed": failed}
     except Exception:
         db.rollback()
         logger.exception("Subscription renewal cycle failed")

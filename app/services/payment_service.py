@@ -3,12 +3,6 @@
 # Owner:   Member 4
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - attempt_payment(db, invoice)  -> creates payment + attempt 1 via mock_gateway
-#   - pay_invoice(db, customer, invoice_id)
-#   - list_payments(db, user, filters, page)
-#   - get_attempts(db, payment_id)
-#   - on success: invoice paid; on failure: store reason and ask retry_service for next time
 
 from typing import Any, Optional
 
@@ -17,10 +11,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.enums import AttemptStatus, InvoiceStatus, PaymentStatus, Role
+from app.core.enums import AttemptStatus, InvoiceStatus, NotificationType, PaymentStatus, Role, SubscriptionStatus
 from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.models.payment import Payment, PaymentAttempt
+from app.models.subscription import Subscription
+from app.services import notification_service
 from app.services.mock_gateway import charge
 from app.utils.dates import utcnow
 
@@ -37,6 +33,9 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
             status_code=409,
             detail=f"Invoice cannot be paid while it is {invoice.status.value}",
         )
+
+    if invoice.total <= 0:
+        raise HTTPException(status_code=400, detail="There is nothing to pay on this invoice")
 
     payment = db.scalar(
         select(Payment).where(Payment.invoice_id == invoice.id).with_for_update()
@@ -76,6 +75,15 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
         payment.failure_reason = None
         invoice.status = InvoiceStatus.PAID
         invoice.paid_at = utcnow()
+        if invoice.subscription_id is not None:  # a successful payment brings a past_due subscription back
+            subscription = db.get(Subscription, invoice.subscription_id)
+            if subscription is not None and subscription.status == SubscriptionStatus.PAST_DUE:
+                subscription.status = SubscriptionStatus.ACTIVE
+        notification_service.notify(
+            db, invoice.customer.user_id, "Payment received",
+            f"Payment for invoice {invoice.invoice_number} succeeded.",
+            NotificationType.PAYMENT, organization_id=invoice.organization_id,
+        )
     else:
         payment.status = PaymentStatus.FAILED
         payment.failure_reason = result["message"]
@@ -83,6 +91,11 @@ def attempt_payment(db: Session, invoice: Invoice) -> Payment:
         from app.services.retry_service import schedule_next_retry
         db.flush()
         schedule_next_retry(db, payment, attempt)
+        notification_service.notify(
+            db, invoice.customer.user_id, "Payment failed",
+            f"We could not charge invoice {invoice.invoice_number}. We will retry automatically.",
+            NotificationType.PAYMENT, organization_id=invoice.organization_id,
+        )
 
     db.commit()
     db.refresh(payment)

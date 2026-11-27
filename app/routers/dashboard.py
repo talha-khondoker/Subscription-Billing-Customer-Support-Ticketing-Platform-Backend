@@ -5,11 +5,6 @@
 # ----------------------------------------------------------------------
 # Notes:
 #   Roles: SA Super Admin, OA Org Admin, AG Agent, CU Customer. Prefix: /api/v1
-# TODO:
-#   - GET /dashboard/platform [SA]
-#   - GET /dashboard/admin [OA]
-#   - GET /dashboard/agent [AG]
-#   - GET /dashboard/customer [CU]
 
 
 """Dashboard endpoints. Owner: Member 6. Paths are full; main.py adds /api/v1."""

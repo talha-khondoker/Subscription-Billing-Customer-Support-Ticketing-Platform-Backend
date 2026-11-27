@@ -1,3 +1,5 @@
+# NOTE: received without a path header; saved as scripts/create_admin.py (its docstring says
+#       "python -m scripts.create_admin" and bootstrap_admin imports from it).
 """Interactively create the first platform Super Admin.
 
 Run from the project root with: python -m scripts.create_admin

@@ -1,4 +1,8 @@
 # ----------------------------------------------------------------------
+# app/core/tenancy.py
+# Owner:   Shared (Member 1 owns; ask before changing)
+# Purpose: Organization (tenant) isolation helper.
+# ----------------------------------------------------------------------
 from app.core.enums import Role
 from app.core.exceptions import NotFound
 
@@ -25,11 +29,3 @@ def get_owned_or_404(db, model, id, user, *, allow_super_admin=False):
     if org_id != user.organization_id:
         raise NotFound()
     return item
-# app/core/tenancy.py
-# Owner:   Shared (Member 1 owns; ask before changing)
-# Purpose: Organization (tenant) isolation helper.
-# ----------------------------------------------------------------------
-# TODO:
-#   - scoped(query, model, user): add organization_id filter for every org-owned table
-#   - get_owned_or_404(db, model, id, user): fetch one row inside the user's organization or raise NotFound
-#   - Super Admin bypasses the filter only where explicitly allowed

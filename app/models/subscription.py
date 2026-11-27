@@ -7,18 +7,6 @@
 #   Every table also has: id, created_at, updated_at (except invoice_items, payment_attempts).
 #   Tables marked (org) also have organization_id (indexed).
 #   Money = Decimal(12,2). Enums are stored as text. All datetimes are naive UTC.
-# TODO:
-#   - table 'subscriptions (org)':
-#   -       customer_id
-#   -       plan_id
-#   -       status
-#   -       start_date
-#   -       current_period_start
-#   -       current_period_end
-#   -       next_billing_date
-#   -       paused_at
-#   -       cancelled_at
-#   -       cancel_at_period_end
 
 
 from datetime import datetime
@@ -54,4 +42,3 @@ class Subscription(Base, IdMixin, TimestampMixin):
     customer: Mapped["Customer"] = relationship(back_populates="subscriptions")
     plan: Mapped["Plan"] = relationship(back_populates="subscriptions")
     invoices: Mapped[List["Invoice"]] = relationship(back_populates="subscription")
-

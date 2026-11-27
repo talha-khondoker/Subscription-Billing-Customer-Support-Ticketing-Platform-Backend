@@ -3,10 +3,6 @@
 # Owner:   Shared (Member 1 owns; ask before changing)
 # Purpose: Reusable FastAPI dependencies for authentication and role checks.
 # ----------------------------------------------------------------------
-# TODO:
-#   - get_current_user: read bearer token, load the user, reject inactive users and disabled organizations
-#   - require_roles(*roles): dependency factory that returns 403 when the role is not allowed
-#   - convenience dependencies: current_org_admin, current_agent, current_customer
 
 
 """Reusable FastAPI dependencies: authentication and role checks. Owner: Member 1.
@@ -25,11 +21,6 @@ Usage in a router:
 
 Swagger: click "Authorize" and paste the token only (no "Bearer " prefix).
 """
-# ----------------------------------------------------------------------
-# app/core/deps.py
-# Owner:   Shared (Member 1 owns; ask before changing)
-# Purpose: Reusable FastAPI dependencies for authentication and role checks.
-# ----------------------------------------------------------------------
 
 from typing import Annotated
 from fastapi import Depends
@@ -40,6 +31,7 @@ from app.core.database import get_db
 from app.core.enums import OrganizationStatus, Role
 from app.core.exceptions import Forbidden, Unauthorized
 from app.core.security import decode_token
+from app.models.customer import Customer
 from app.models.organization import Organization
 from app.models.user import User
 
@@ -64,6 +56,12 @@ def get_current_user(
         organization = db.get(Organization, user.organization_id)
         if organization is None or organization.status != OrganizationStatus.ACTIVE:
             raise Forbidden("Your organization is disabled")
+
+    # Safety net: a customer account must always have its Customer profile row.
+    if user.role == Role.CUSTOMER and user.organization_id is not None and user.customer_profile is None:
+        db.add(Customer(organization_id=user.organization_id, user_id=user.id))
+        db.commit()
+        db.refresh(user)
 
     return user
 

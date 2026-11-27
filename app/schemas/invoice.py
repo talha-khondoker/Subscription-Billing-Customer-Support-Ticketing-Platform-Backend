@@ -3,11 +3,28 @@
 # Owner: Member 3
 # Purpose: Pydantic schemas for invoice request and response validation.
 # ----------------------------------------------------------------------
+# TODO:
+#   - InvoiceItemOut
+#   - InvoiceOut (with items)
+#   - InvoiceFilter (customer, status, date range)
+
+# ----------------------------------------------------------------------
+# app/schemas/invoice.py
+# Owner: Member 3
+# Purpose: Pydantic schemas for invoice request and response validation.
+# ----------------------------------------------------------------------
 # Notes:
 #   - Response schemas use ORM attributes.
 #   - Money values use Decimal.
 #   - Datetimes are naive UTC.
 #   - Invoice items may contain negative amounts.
+#
+# TODO:
+#   - InvoiceItemResponse
+#   - InvoiceSummary
+#   - InvoiceResponse
+#   - InvoiceListResponse
+#   - InvoiceFilter
 # ----------------------------------------------------------------------
 
 from datetime import datetime

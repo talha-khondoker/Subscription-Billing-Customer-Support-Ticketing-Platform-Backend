@@ -1,10 +1,5 @@
-# ----------------------------------------------------------------------
-# app/services/invoice_service.py
-# Owner:   Member 3
-# Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
-# NOTE: this file was received WITHOUT a path header (it began at "# Called by routers and jobs.");
-#       saved here as invoice_service.py because its contents are the invoice service.
-# ----------------------------------------------------------------------
+
+# Called by routers and jobs.
 
 
 from datetime import datetime
@@ -99,7 +94,7 @@ def generate_for_subscription(db, subscription):
     invoice = Invoice(
         organization_id=subscription.organization_id,
         customer_id=subscription.customer_id,
-        subscription=subscription,
+        subscription_id=subscription.id,
         invoice_number=invoice_number,
         period_start=subscription.current_period_start,
         period_end=subscription.current_period_end,
@@ -144,7 +139,7 @@ def build_proration_invoice(db, subscription, amount):
     invoice = Invoice(
         organization_id=subscription.organization_id,
         customer_id=subscription.customer_id,
-        subscription=subscription,
+        subscription_id=subscription.id,
         invoice_number=invoice_number,
         period_start=subscription.current_period_start,
         period_end=subscription.current_period_end,

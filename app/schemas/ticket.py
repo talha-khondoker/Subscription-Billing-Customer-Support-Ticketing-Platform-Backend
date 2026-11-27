@@ -3,15 +3,6 @@
 # Owner:   Member 5
 # Purpose: Pydantic request/response schemas (the API contract used by the frontend).
 # ----------------------------------------------------------------------
-# TODO:
-#   - TicketCreate
-#   - TicketUpdate
-#   - AssignRequest
-#   - MessageCreate
-#   - MessageOut
-#   - TicketOut
-#   - TicketDetailOut (with messages)
-#   - BillingContextOut (subscription, invoices, payments, failed attempts, refunds, past tickets)
 
 
 """Ticket schemas. Owner: Member 5. (Phase 2 + Phase 3 - replaces the Phase 2 file.)"""

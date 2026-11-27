@@ -3,17 +3,6 @@
 # Owner:   Member 1
 # Purpose: Pydantic request/response schemas (the API contract used by the frontend).
 # ----------------------------------------------------------------------
-# TODO:
-#   - RegisterRequest (email, password, full_name, organization_id)
-#   - LoginRequest
-#   - TokenResponse (access_token, token_type, user)
-#   - UserOut
-
-# ----------------------------------------------------------------------
-# app/schemas/auth.py
-# Owner:   Member 1
-# Purpose: Pydantic request/response schemas (the API contract used by the frontend).
-# ----------------------------------------------------------------------
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -47,3 +36,20 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class OrganizationRegisterRequest(BaseModel):
+    """Public sign-up of a new organization together with its first Org Admin."""
+    organization_name: str = Field(min_length=2, max_length=150)
+    admin_full_name: str = Field(min_length=1, max_length=150)
+    admin_email: EmailStr
+    admin_password: str = Field(min_length=8, max_length=72)
+
+
+class ProfileUpdate(BaseModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=150)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=72)
+    new_password: str = Field(min_length=8, max_length=72)

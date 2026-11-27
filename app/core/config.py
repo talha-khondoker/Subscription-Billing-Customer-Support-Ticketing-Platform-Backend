@@ -3,11 +3,6 @@
 # Owner:   Shared (Member 1 owns; ask before changing)
 # Purpose: Settings read from environment variables / .env.
 # ----------------------------------------------------------------------
-# TODO:
-#   - ENV, DATABASE_URL, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
-#   - RETRY_SCHEDULE_DAYS (default 1,3,5), MAX_RETRY_ATTEMPTS (default 3)
-#   - SCHEDULER_ENABLED, CORS_ORIGINS, DEFAULT_TAX_PERCENT
-#   - expose one settings object imported everywhere
 
 
 """Application settings. Values come from environment variables or a .env file."""
@@ -34,3 +29,11 @@ class Settings:
 
 settings = Settings()
 
+# The demo accounts use the reserved ".test" domain (admin@acme.test ...). Pydantic's EmailStr rejects
+# those by default, which makes login and /auth/me fail for the seeded users. Allow them outside production.
+if settings.ENV != "production":
+    try:
+        import email_validator
+        email_validator.TEST_ENVIRONMENT = True
+    except ImportError:  # pragma: no cover
+        pass

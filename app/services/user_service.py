@@ -1,11 +1,8 @@
-# -----# app/services/user_service.py
+# ----------------------------------------------------------------------
+# app/services/user_service.py
 # Owner:   Member 1
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - create_agent(db, org_id, data)
-#   - list_agents(db, org_id)
-#   - update_user(db, org_id, user_id, data)-----------------------------------------------------------------
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -35,6 +32,8 @@ def update_user(db: Session, org_id: int, user_id: int, data):
     user = db.scalar(select(User).where(User.id == user_id, User.organization_id == org_id))
     if user is None:
         raise NotFound("User not found")
+    if user.role != Role.AGENT:
+        raise BusinessRuleError("Only support agents can be updated here", 400, "NOT_AN_AGENT")
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(user, key, value)
     db.flush()

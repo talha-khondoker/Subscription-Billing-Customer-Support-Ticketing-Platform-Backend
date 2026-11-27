@@ -3,10 +3,6 @@
 # Owner:   Member 2
 # Purpose: Pydantic request/response schemas (the API contract used by the frontend).
 # ----------------------------------------------------------------------
-# TODO:
-#   - PlanCreate
-#   - PlanUpdate
-#   - PlanOut
 
 
 from decimal import Decimal

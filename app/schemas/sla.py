@@ -3,10 +3,6 @@
 # Owner:   Member 5
 # Purpose: Pydantic request/response schemas (the API contract used by the frontend).
 # ----------------------------------------------------------------------
-# TODO:
-#   - SlaPolicyCreate
-#   - SlaPolicyUpdate
-#   - SlaPolicyOut
 """SLA policy schemas. Owner: Member 5."""
 from datetime import datetime
 from typing import Optional

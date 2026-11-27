@@ -3,10 +3,6 @@
 # Owner:   Member 6
 # Purpose: Business rules. Works with the DB session and models. Called by routers and jobs.
 # ----------------------------------------------------------------------
-# TODO:
-#   - get_my_profile / update_my_profile
-#   - list_customers(db, org_id, search, page)
-#   - get_customer_detail(db, id)  -> histories
 
 
 """Customer profiles and history. Owner: Member 6.
@@ -27,6 +23,7 @@ from app.models.subscription import Subscription
 from app.models.ticket import Ticket
 from app.models.user import User
 from app.schemas.customer import (
+    CustomerAdminUpdate,
     CustomerDetailOut,
     CustomerOut,
     CustomerUpdate,
@@ -35,7 +32,7 @@ from app.schemas.customer import (
     SubscriptionSummary,
     TicketSummary,
 )
-from app.utils.pagination import paginate
+from app.utils.pagination import paginate_stmt
 
 HISTORY_LIMIT = 20  # newest N rows per history list in the detail view
 
@@ -48,6 +45,31 @@ def get_my_customer(db: Session, user: User) -> Customer:
     if customer is None:
         raise NotFound("Customer profile not found")
     return customer
+
+
+def update_customer_by_admin(db: Session, user: User, customer_id: int, data: CustomerAdminUpdate) -> CustomerOut:
+    """Org Admin edits a customer of their organization (profile fields and login on/off)."""
+    from app.services import audit_service
+    customer = _get_in_org(db, user, customer_id)
+    changes = data.model_dump(exclude_unset=True)
+    old = {"full_name": customer.user.full_name, "phone": customer.phone,
+           "company_name": customer.company_name, "is_active": customer.user.is_active}
+
+    if changes.get("full_name"):
+        customer.user.full_name = changes["full_name"]
+    if "phone" in changes:
+        customer.phone = changes["phone"]
+    if "company_name" in changes:
+        customer.company_name = changes["company_name"]
+    if changes.get("is_active") is not None:
+        customer.user.is_active = changes["is_active"]
+
+    new = {"full_name": customer.user.full_name, "phone": customer.phone,
+           "company_name": customer.company_name, "is_active": customer.user.is_active}
+    audit_service.log(db, user, "customer.update", "customer", customer.id, old, new)
+    db.commit()
+    db.refresh(customer)
+    return CustomerOut.from_customer(customer)
 
 
 def get_my_profile(db: Session, user: User) -> CustomerOut:
@@ -103,7 +125,7 @@ def list_customers(
         )
     stmt = stmt.order_by(Customer.id.desc())
 
-    result = paginate(db, stmt, page, page_size)
+    result = paginate_stmt(db, stmt, page, page_size)
     result["items"] = [CustomerOut.from_customer(c) for c in result["items"]]
     return result
 
